@@ -123,3 +123,28 @@ jobs:
           # go test ./...
 
           echo "✅ API tests passed" >> $GITHUB_STEP_SUMMARY
+
+  update-version-file:
+    runs-on: ubuntu-latest
+    needs: versioning
+    permissions:
+      contents: write   # obligatoire pour push
+
+    steps:
+      - name: Checkout deploy-dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: deploy-dev
+
+      - name: Update version.txt
+        run: |
+          echo "${{ needs.versioning.outputs.version }}" > version.txt
+
+      - name: Commit and push version file
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+          git add version.txt
+          git commit -m "Update version to ${{ needs.versioning.outputs.version }}" || echo "No changes to commit"
+          git push origin deploy-dev
