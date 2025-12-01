@@ -38,14 +38,73 @@ func TestGetCats(t *testing.T) {
 		t.Error("We should get code 200, got", code)
 	}
 
-	if len(result) != 2 {
+	if len(result) != 1 {
 		t.Error("We should get one item, got", len(result))
 		return
 	}
 
-	if result[1] != initCatId {
+	if result[0] != initCatId {
 		t.Error("Listing the IDs, got", result[0])
 	}
 }
 
-// Continue implementing here ...
+func TestCreateCat(t *testing.T) {
+	code := 0
+	newID := ""
+
+	err := call("POST", "/cats", &CatModel{Name: "Mimi"}, &code, &newID)
+	if err != nil {
+		t.Error("Request error", err)
+	}
+
+	fmt.Println("POST /cats ->", code, newID)
+
+	if code != http.StatusCreated {
+		t.Error("We should get code 201, got", code)
+	}
+
+	if newID == "" {
+		t.Error("New cat ID should not be empty")
+	}
+}
+
+func TestGetCatById(t *testing.T) {
+	code := 0
+	result := CatModel{}
+
+	err := call("GET", "/cats/"+initCatId, nil, &code, &result)
+	if err != nil {
+		t.Error("Request error", err)
+	}
+
+	if code != http.StatusOK {
+		t.Error("Expected 200, got", code)
+	}
+
+	if result.ID != initCatId {
+		t.Error("Expected ID", initCatId, "got", result.ID)
+	}
+}
+
+
+
+func TestDeleteCat(t *testing.T) {
+	code := 0
+	newID := ""
+
+	// Créer un chat à supprimer
+	call("POST", "/cats", &CatModel{Name: "ToDelete"}, &code, &newID)
+
+	// Supprimer
+	code = 0
+	err := call("DELETE", "/cats/"+newID, nil, &code, nil)
+	if err != nil {
+		t.Error("Request error", err)
+	}
+
+	if code != http.StatusNoContent {
+		t.Error("Expected 204, got", code)
+	}
+}
+
+
